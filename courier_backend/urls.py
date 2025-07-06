@@ -18,7 +18,9 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf.urls.static import static
 from django.conf import settings
+from core.views import home
 urlpatterns = [
+    path('', home, name='home'),
     path('admin/', admin.site.urls),
     path('api/v1/', include('core.urls')),
     path('api/v1/payments/', include('payments.urls'))

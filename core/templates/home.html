@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courier Management System API Guide</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            color: #374151; /* Dark gray text */
+        }
+        .container {
+            max-width: 960px;
+        }
+        pre {
+            background-color: #1f2937; /* Dark background for code blocks */
+            color: #f9fafb; /* Light text for code blocks */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+            font-size: 0.875rem; /* text-sm */
+            line-height: 1.5;
+        }
+        pre code { /* Target code specifically inside pre tags */
+            background-color: inherit; /* Inherit background from pre */
+            color: inherit; /* Inherit color from pre */
+            padding: 0; /* Remove padding for code inside pre */
+            border-radius: 0; /* Remove border-radius for code inside pre */
+        }
+        code { /* For inline code outside of pre tags */
+            font-family: 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+            background-color: #e5e7eb; /* Light gray for inline code */
+            padding: 0.2em 0.4em;
+            border-radius: 0.25rem;
+            font-size: 0.875rem; /* text-sm */
+        }
+        h1, h2, h3, h4 {
+            color: #111827; /* Darker headings */
+            font-weight: 700;
+        }
+        h1 { font-size: 2.25rem; /* text-4xl */ }
+        h2 { font-size: 1.875rem; /* text-3xl */ }
+        h3 { font-size: 1.5rem; /* text-2xl */ }
+        h4 { font-size: 1.25rem; /* text-xl */ }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .section-separator {
+            border-top: 1px solid #d1d5db; /* Light gray border */
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        .note-box {
+            background-color: #e0f2fe; /* Light blue */
+            border-left: 4px solid #38b2ac; /* Teal border */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="container mx-auto bg-white p-6 md:p-10 rounded-lg shadow-xl">
+
+        <h1 class="text-4xl mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">📦</span> Courier Management System API Guide
+        </h1>
+        <div class="note-box mb-8">
+            <p class="font-semibold text-teal-800">
+                For some endpoints, you must pass a JWT (JSON Web Token) Access Token in the `Authorization` header, typically in the format: `Authorization: Bearer <your_access_token>`.
+            </p>
+        </div>
+        <img src="https://i.ibb.co/M5RKdf81/Screenshot-from-2025-07-06-18-06-20.png" alt="API Authentication Example Screenshot" class="my-6">
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">👤</span> Step 1: Create a Superuser
+        </h2>
+        <p class="mb-2">First, access the Django shell:</p>
+        <pre><code>python manage.py shell</code></pre>
+        <p class="mt-4 mb-2">Then, execute the following Python code within the shell:</p>
+        <pre><code>from core.models import User
+User.objects.create_superuser(email='Superuser@example.com', password='StrongPassword123!')</code></pre>
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">📝</span> Step 2: Register a User
+        </h2>
+        <h3 class="text-2xl mt-4 mb-2">Endpoint:</h3>
+        <p class="mb-4">
+            <code class="bg-gray-200 p-1 rounded">POST</code> <code class="bg-gray-200 p-1 rounded">http://127.0.0.1:8000/api/v1/auth/register/</code>
+        </p>
+        <h3 class="text-2xl mt-4 mb-2">Request JSON:</h3>
+        <pre><code>{
+  "email": "Customer@example.com",
+  "password": "StrongPassword123!",
+  "confirm_password": "StrongPassword123!"
+}</code></pre>
+        <h3 class="text-2xl mt-4 mb-2">Response JSON:</h3>
+        <pre><code>{
+  "id": 5,
+  "email": "Customer@example.com",
+  "role": "user",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+        <p class="text-sm text-gray-600 mt-2">
+            *Note: The actual response from `dj-rest-auth` for register also includes `access_token` and `refresh_token`.*
+        </p>
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">🔑</span> Step 3: Role Assignment via Admin
+        </h2>
+        <h3 class="text-2xl mt-4 mb-2">Admin Panel URLs:</h3>
+        <p class="mb-2">
+            <strong>Superuser Login Info:</strong> `email='Superuser@example.com'`, `password='StrongPassword123!'`
+        </p>
+        <ul class="list-disc list-inside ml-4 mb-4">
+            <li>Login: <a href="http://127.0.0.1:8000/admin/" target="_blank" class="text-blue-600 hover:underline">http://127.0.0.1:8000/admin/</a></li>
+            <li>User Role Assignment: <a href="http://127.0.0.1:8000/admin/core/user/" target="_blank" class="text-blue-600 hover:underline">http://127.0.0.1:8000/admin/core/user/</a></li>
+        </ul>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+            <img src="https://i.ibb.co/d4gMj8NY/Screenshot-from-2025-07-06-16-51-20.png" alt="Admin Panel Screenshot 1" class="w-full">
+            <img src="https://i.ibb.co/F4HrL31z/Screenshot-from-2025-07-06-16-51-51.png" alt="Admin Panel Screenshot 2" class="w-full">
+        </div>
+        <p class="mt-4">
+            Default role for newly registered users is `user`. You can assign roles like `admin` or `deliveryman` from the admin panel.
+        </p>
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">🔐</span> Step 4: Login as User/Admin/Deliveryman
+        </h2>
+        <p class="mb-2">Use the `POST` method to `http://127.0.0.1:8000/api/v1/auth/login/` with the following JSON request bodies:</p>
+
+        <h3 class="text-2xl mt-4 mb-2">Customer Login Request:</h3>
+        <pre><code>{
+  "email": "Customer@example.com",
+  "password": "StrongPassword123!"
+}</code></pre>
+
+        <h3 class="text-2xl mt-4 mb-2">Admin Login Request:</h3>
+        <pre><code>{
+  "email": "Admin@example.com",
+  "password": "StrongPassword123!"
+}</code></pre>
+
+        <h3 class="text-2xl mt-4 mb-2">Deliveryman Login Request:</h3>
+        <pre><code>{
+  "email": "Deliveryman@example.com",
+  "password": "StrongPassword123!"
+}</code></pre>
+
+        <h3 class="text-2xl mt-4 mb-2">Login Response (JSON):</h3>
+        <pre><code>{
+  "refresh": "&lt;refresh_token&gt;",
+  "access": "&lt;access_token&gt;"
+}</code></pre>
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">🔄</span> Step 5: Refresh Access Token
+        </h2>
+        <h3 class="text-2xl mt-4 mb-2">Endpoint:</h3>
+        <p class="mb-4">
+            <code class="bg-gray-200 p-1 rounded">POST</code> <code class="bg-gray-200 p-1 rounded">http://127.0.0.1:8000/api/v1/auth/token/refresh/</code>
+        </p>
+        <h3 class="text-2xl mt-4 mb-2">Request JSON:</h3>
+        <pre><code>{
+  "refresh": "&lt;refresh_token&gt;"
+}</code></pre>
+        <p class="text-sm text-gray-600 mt-2">
+            *Replace `&lt;refresh_token&gt;` with the actual refresh token obtained from login.*
+        </p>
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">🛒</span> Step 6: Create an Order (Customer)
+        </h2>
+        <div class="note-box">
+            <p class="font-semibold text-teal-800">
+                This endpoint is protected and requires a JWT Access Token in the `Authorization: Bearer &lt;access_token&gt;` header.
+            </p>
+        </div>
+        <h3 class="text-2xl mt-4 mb-2">Endpoint:</h3>
+        <p class="mb-4">
+            <code class="bg-gray-200 p-1 rounded">POST</code> <code class="bg-gray-200 p-1 rounded">http://127.0.0.1:8000/api/v1/orders/create/</code>
+        </p>
+        <h3 class="text-2xl mt-4 mb-2">Request JSON:</h3>
+        <pre><code>{
+  "address": "123 Main Street, City, Country",
+  "cost_ammount": 99.99,
+  "payment_method": "online"
+}</code></pre>
+        <h3 class="text-2xl mt-4 mb-2">Response JSON:</h3>
+        <pre><code>{
+  "id": 2,
+  "address": "123 Main Street, City, Country",
+  "cost_ammount": "99.99",
+  "status": "pending",
+  "payment_method": "online",
+  "payment_status": "pending",
+  "created_at": "2025-07-06T11:18:15.595173Z",
+  "delivery_completed_at": null,
+  "user": 5,
+  "delivery_man": null
+}</code></pre>
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">📦</span> Step 7: View Customer Orders
+        </h2>
+        <div class="note-box">
+            <p class="font-semibold text-teal-800">
+                This endpoint is protected and requires a JWT Access Token in the `Authorization: Bearer &lt;access_token&gt;` header.
+            </p>
+        </div>
+        <h3 class="text-2xl mt-4 mb-2">Endpoint:</h3>
+        <p class="mb-4">
+            <code class="bg-gray-200 p-1 rounded">GET</code> <code class="bg-gray-200 p-1 rounded">http://127.0.0.1:8000/api/v1/orders/user/</code>
+        </p>
+        <h3 class="text-2xl mt-4 mb-2">Response JSON:</h3>
+        <pre><code>[
+  {
+    "id": 2,
+    "address": "123 Main Street, City, Country",
+    "cost_ammount": "99.99",
+    "status": "pending",
+    "payment_method": "online",
+    "payment_status": "pending",
+    "created_at": "2025-07-06T11:18:15.595173Z",
+    "delivery_completed_at": null,
+    "user": 5,
+    "delivery_man": null
+  }
+]</code></pre>
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">💳</span> Step 8: Create Stripe Checkout Session
+        </h2>
+        <div class="note-box">
+            <p class="font-semibold text-teal-800">
+                This endpoint is protected and requires a JWT Access Token in the `Authorization: Bearer &lt;access_token&gt;` header.
+            </p>
+        </div>
+        <h3 class="text-2xl mt-4 mb-2">Endpoint:</h3>
+        <p class="mb-4">
+            <code class="bg-gray-200 p-1 rounded">GET</code> <code class="bg-gray-200 p-1 rounded">http://127.0.0.1:8000/api/v1/payments/create-checkout-session/&lt;int:order_id&gt;/</code>
+        </p>
+        <h3 class="text-2xl mt-4 mb-2">Response JSON:</h3>
+        <pre><code>{
+  "success": true,
+  "checkout_url": "https://checkout.stripe.com/c/pay/...",
+  "message": "Stripe checkout session created."
+}</code></pre>
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">🧾</span> Step 9: Admin Views All Orders
+        </h2>
+        <div class="note-box">
+            <p class="font-semibold text-teal-800">
+                This endpoint is protected and requires a JWT Access Token in the `Authorization: Bearer &lt;access_token&gt;` header.
+                User must have the `admin` role.
+            </p>
+        </div>
+        <h3 class="text-2xl mt-4 mb-2">Endpoint:</h3>
+        <p class="mb-4">
+            <code class="bg-gray-200 p-1 rounded">GET</code> <code class="bg-gray-200 p-1 rounded">http://127.0.0.1:8000/api/v1/orders/admin/</code>
+        </p>
+        <h3 class="text-2xl mt-4 mb-2">Response JSON:</h3>
+        <pre><code>[
+  {
+    "id": 2,
+    "address": "123 Main Street, City, Country",
+    "cost_ammount": "99.99",
+    "status": "pending",
+    "payment_method": "online",
+    "payment_status": "pending",
+    "created_at": "2025-07-06T11:18:15.595173Z",
+    "delivery_completed_at": null,
+    "user": 5,
+    "delivery_man": null
+  }
+]</code></pre>
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">📬</span> Step 10: Admin Assigns Order to Deliveryman
+        </h2>
+        <div class="note-box">
+            <p class="font-semibold text-teal-800">
+                This endpoint is protected and requires a JWT Access Token in the `Authorization: Bearer &lt;access_token&gt;` header.
+                User must have the `admin` role.
+            </p>
+        </div>
+        <h3 class="text-2xl mt-4 mb-2">Endpoint:</h3>
+        <p class="mb-4">
+            <code class="bg-gray-200 p-1 rounded">GET</code> <code class="bg-gray-200 p-1 rounded">http://127.0.0.1:8000/api/v1/orders/admin/assign/&lt;int:order_id&gt;/&lt;int:deliveryman_id&gt;/</code>
+        </p>
+        <h3 class="text-2xl mt-4 mb-2">Response JSON:</h3>
+        <pre><code>{
+  "success": true,
+  "message": "Delivery man (ID: 6) assigned to order (ID: 2).",
+  "order_id": 2,
+  "delivery_man": "Deliveryman@example.com",
+  "status": "assigned"
+}</code></pre>
+        <hr class="section-separator">
+
+        <h1 class="text-4xl mt-12 mb-6 flex items-center">
+            <span class="mr-3 text-blue-600">🚚</span> Deliveryman API
+        </h1>
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">📥</span> View Assigned Orders
+        </h2>
+        <div class="note-box">
+            <p class="font-semibold text-teal-800">
+                This endpoint is protected and requires a JWT Access Token in the `Authorization: Bearer &lt;access_token&gt;` header.
+                User must have the `deliveryman` role.
+            </p>
+        </div>
+        <h3 class="text-2xl mt-4 mb-2">Endpoint:</h3>
+        <p class="mb-4">
+            <code class="bg-gray-200 p-1 rounded">GET</code> <code class="bg-gray-200 p-1 rounded">http://127.0.0.1:8000/api/v1/orders/delivery/</code>
+        </p>
+        <h3 class="text-2xl mt-4 mb-2">Response JSON:</h3>
+        <pre><code>[
+  {
+    "id": 2,
+    "address": "123 Main Street, City, Country",
+    "cost_ammount": "99.99",
+    "status": "assigned",
+    "payment_method": "online",
+    "payment_status": "pending",
+    "created_at": "2025-07-06T11:18:15.595173Z",
+    "delivery_completed_at": null,
+    "user": 5,
+    "delivery_man": 6
+  }
+]</code></pre>
+        <hr class="section-separator">
+
+        <h2 class="text-3xl mt-8 mb-4 flex items-center">
+            <span class="mr-3 text-blue-600">📤</span> Update Order Status
+        </h2>
+        <div class="note-box">
+            <p class="font-semibold text-teal-800">
+                This endpoint is protected and requires a JWT Access Token in the `Authorization: Bearer &lt;access_token&gt;` header.
+                User must have the `deliveryman` role.
+            </p>
+        </div>
+        <h3 class="text-2xl mt-4 mb-2">Endpoint:</h3>
+        <p class="mb-4">
+            <code class="bg-gray-200 p-1 rounded">GET</code> <code class="bg-gray-200 p-1 rounded">http://127.0.0.1:8000/api/v1/delivery/update-status/&lt;int:order_id&gt;/&lt;str:status_value&gt;/</code>
+        </p>
+        <h3 class="text-2xl mt-4 mb-2">Valid Status Values:</h3>
+        <p class="mb-4">
+            <code class="bg-gray-200 p-1 rounded">pending</code>, <code class="bg-gray-200 p-1 rounded">assigned</code>, <code class="bg-gray-200 p-1 rounded">delivered</code>, <code class="bg-gray-200 p-1 rounded">complete</code>
+        </p>
+        <h3 class="text-2xl mt-4 mb-2">Response JSON:</h3>
+        <pre><code>{
+  "success": true,
+  "message": "Order status updated successfully.",
+  "order_id": 2,
+  "status": "delivered"
+}</code></pre>
+    </div>
+</body>
+</html>
