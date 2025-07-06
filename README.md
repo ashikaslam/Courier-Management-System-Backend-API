@@ -48,7 +48,7 @@ User.objects.create_superuser(email='Superuser@example.com', password='StrongPas
 ## 🔑 Step 3: Role Assignment via Admin
 
 **Admin Panel URLs:**
-
+**super user login info** >> `(email='Superuser@example.com', password='StrongPassword123!')`
 - Login: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
 - User Role Assignment: [http://127.0.0.1:8000/admin/core/user/](http://127.0.0.1:8000/admin/core/user/)
 
